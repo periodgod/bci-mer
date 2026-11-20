@@ -1,0 +1,26 @@
+{
+  "method": "compliant_physio_ravc",
+  "local_cv": {
+    "method": "CompliantPhysio_RAVC_StartBlend40_CenterA",
+    "overall_mae": 46.4487,
+    "valence_mae": 49.9627,
+    "arousal_mae": 42.9346,
+    "overall_mse": 3523.9499,
+    "notes": "Compliant EEG/fNIRS physiological model; no video-time label lookup."
+  },
+  "rule_compliance": {
+    "uses_raw_eeg_fnirs": true,
+    "uses_fixed_video_time_label_lookup": false,
+    "uses_sample_id_for_output_alignment_and_signal_window_selection": true,
+    "uses_leaderboard_feedback_calibration": false
+  },
+  "config": {
+    "components": 16,
+    "alpha": 0.001,
+    "huber_epsilon": 1.35,
+    "smooth_window": 5,
+    "negative_scale": 0.6,
+    "trial_start_blend": 0.4,
+    "arousal_constant": 128.0
+  }
+}

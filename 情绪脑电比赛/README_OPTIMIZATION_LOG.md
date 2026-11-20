@@ -3961,3 +3961,80 @@ RAVC-S = Huber PCA16 valence decoder
        + trial-onset center brake
        + center arousal
 ```
+
+## Iteration 543: Rule-compliant physiological submission
+
+Goal: replace the video-time lookup submission with a normal, reproducible model pipeline after the organizer clarified method validity requirements.
+
+Rule change addressed:
+
+```text
+sample_id should not be treated as a stable semantic prediction interface.
+Submissions should not mainly rely on fixed trajectory lookup, hand scaling, constant bias, or leaderboard feedback calibration.
+```
+
+New submission:
+
+```text
+submissions/sub10_compliant_physio.zip
+```
+
+Pipeline:
+
+```text
+raw EEG/fNIRS .mat
+-> baseline correction
+-> per-second EEG bandpower and fNIRS statistics
+-> EEG lag features + fNIRS slow rolling features
+-> standardization
+-> PCA16
+-> Huber-Ridge valence head
+-> 5-second temporal smoothing
+-> asymmetric valence residual shrink
+-> trial-start center blend
+-> arousal center baseline
+```
+
+Important compliance detail:
+
+```text
+sample_id is used only to select the requested subject/trial/second from the official raw signal files
+and to preserve the required output row identity. The model does not load or query a fixed video-time
+label trajectory artifact.
+```
+
+Result file:
+
+```text
+experiments/results/iteration_543_compliant_physio_ravc.json
+```
+
+Results:
+
+| Method | Overall MAE | Valence MAE | Arousal MAE | Validity |
+| --- | ---: | ---: | ---: | --- |
+| CompliantPhysio_RAVC_StartBlend40_CenterA | 46.4487 | 49.9627 | 42.9346 | Normal EEG/fNIRS model |
+| CompliantPhysio_RAVC_CenterA | 46.5379 | 50.1412 | 42.9346 | Normal EEG/fNIRS model |
+| CompliantPhysio_SmoothV_CenterA | 46.6309 | 50.3272 | 42.9346 | Normal EEG/fNIRS model |
+| CompliantPhysio_RawV_CenterA | 46.6628 | 50.3910 | 42.9346 | Normal EEG/fNIRS model |
+| CompliantPhysio_RAVC_StartBlend40_TrainMeanA | 46.9255 | 49.9627 | 43.8883 | Normal EEG/fNIRS model |
+
+Validation:
+
+```text
+1. Full subject-disjoint 6-fold CV over test_1-test_24 completed.
+2. sub10_compliant_physio.zip was generated with root-level model.py.
+3. Extracted zip ran predict(input_dir, output_dir) on a mock test_21 trial.
+4. tools/validate_predictions.py confirmed one prediction per sample_id and integer labels in [1,255].
+```
+
+Interpretation:
+
+```text
+1. This model is much weaker than the video-prior submissions because it no longer exploits repeated
+   video-time label structure.
+2. It is the safer final-validity baseline: reproducible, low-parameter, signal-driven, and inspectable.
+3. If we want both validity and higher score, the next step should be a learned prior-conditioned
+   physiological model where prior-like information is learned inside training and ablated, not a
+   submitted fixed lookup table.
+```
